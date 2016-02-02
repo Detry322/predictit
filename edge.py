@@ -56,6 +56,10 @@ PORT_NUMBER = 8000 # Maybe set this to 9000.
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
         """Respond to a GET request."""
+        if s.path != "/":
+            s.send_response(404)
+            s.end_headers()
+            return
         s.send_response(200)
         s.send_header("Content-type", "text/plain")
         s.end_headers()

@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 import grequests
-import time
-import BaseHTTPServer
+
 
 URL_BASE = "https://www.predictit.org/Home/GetContractListAjax?marketId="
 
@@ -49,39 +48,21 @@ def parse_market(response):
     return market
 
 
-HOST_NAME = '0.0.0.0' # !!!REMEMBER TO CHANGE THIS!!!
-PORT_NUMBER = 8000 # Maybe set this to 9000.
+def get_data():
+    result = ""
+    market_ids = None
+    with open('./markets.txt', 'r') as f:
+        market_ids = f.read().strip().split('\n')
+
+    responses = grequests.map([grequests.get(URL_BASE + market_id) for market_id in market_ids])
+
+    markets = [parse_market(response) for response in responses if response.status_code == 200]
+
+    result += ("        market name | bye | bne | byt | bnt |\n")
+    for market in markets:
+        result += ("{: >19s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(market.name, *market.edges()))
+    return result
 
 
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    def do_GET(s):
-        """Respond to a GET request."""
-        if s.path != "/":
-            s.send_response(404)
-            s.end_headers()
-            return
-        s.send_response(200)
-        s.send_header("Content-type", "text/plain")
-        s.end_headers()
-        market_ids = None
-        with open('./markets.txt', 'r') as f:
-            market_ids = f.read().strip().split('\n')
-
-        responses = grequests.map([grequests.get(URL_BASE + market_id) for market_id in market_ids])
-
-        markets = [parse_market(response) for response in responses if response.status_code == 200]
-
-        s.wfile.write("        market name | bye | bne | byt | bnt |\n")
-        for market in markets:
-            s.wfile.write("{: >19s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(market.name, *market.edges()))
-
-if __name__ == '__main__':
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
-    print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    httpd.server_close()
-    print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
+if __name__ == "__main__":
+    print get_data()

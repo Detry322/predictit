@@ -62,10 +62,9 @@ def get_data():
     markets = [parse_market(response) for response in responses if response.status_code == 200]
 
     result += ("        market name | bye | bne | byt | bnt |\n")
-    for market in markets:
-        if market is None:
-            continue
-        result += ("{: >19s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(market.name, *market.edges()))
+    market_results = sorted([(market.name,) + market.edges() for market in markets if market is not None], key=lambda x: -x[2])
+    for market in market_results:
+        result += ("{: >19s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(*market))
     return result
 
 

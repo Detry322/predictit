@@ -27,25 +27,28 @@ def get_title(soup):
 
 
 def parse_market(response):
-    market = Market()
-    soup = BeautifulSoup(response.text, "html.parser")
-    market.name = get_title(soup)
-    for match in soup.find('table', id="contractListTable").find('tbody').find_all('tr'):
-        name_match = match.find('h4')
-        if name_match is None:
-            continue
-        name = name_match.text.strip()
-        buy_str, sell_str = match.find_all('span', class_='sharesUp')
-        if buy_str.text == "None":
-            buy = 100
-        else:
-            buy = int(buy_str.text[:-1])
-        if sell_str.text == "None":
-            sell = 0
-        else:
-            sell = int(sell_str.text[:-1])
-        market.add_contestant(name, buy, sell)
-    return market
+    try:
+        market = Market()
+        soup = BeautifulSoup(response.text, "html.parser")
+        market.name = get_title(soup)
+        for match in soup.find('table', id="contractListTable").find('tbody').find_all('tr'):
+            name_match = match.find('h4')
+            if name_match is None:
+                continue
+            name = name_match.text.strip()
+            buy_str, sell_str = match.find_all('span', class_='sharesUp')
+            if buy_str.text == "None":
+                buy = 100
+            else:
+                buy = int(buy_str.text[:-1])
+            if sell_str.text == "None":
+                sell = 0
+            else:
+                sell = int(sell_str.text[:-1])
+            market.add_contestant(name, buy, sell)
+        return market
+    except ValueError:
+        return None
 
 
 def get_data():
@@ -60,6 +63,8 @@ def get_data():
 
     result += ("        market name | bye | bne | byt | bnt |\n")
     for market in markets:
+        if market is None:
+            continue
         result += ("{: >19s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(market.name, *market.edges()))
     return result
 

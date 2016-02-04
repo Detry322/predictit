@@ -51,9 +51,15 @@ def parse_market(response):
     except ValueError:
         return None
 
-
-def get_data():
+def print_markets(markets):
     result = ""
+    result += ("        market name |   id | bye | bne | byt | bnt |\n")
+    market_results = sorted([(market.name, market.id) + market.edges() for market in markets if market is not None], key=lambda x: -x[3])
+    for market in market_results:
+        result += ("{: >19s} | {: >4s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(*market))
+    return result
+
+def get_markets():
     market_ids = None
     with open('./markets.txt', 'r') as f:
         market_ids = list(set(f.read().strip().split('\n')))
@@ -62,12 +68,8 @@ def get_data():
 
     markets = [parse_market(response) for response in responses if response.status_code == 200]
 
-    result += ("        market name |   id | bye | bne | byt | bnt |\n")
-    market_results = sorted([(market.name, market.id) + market.edges() for market in markets if market is not None], key=lambda x: -x[3])
-    for market in market_results:
-        result += ("{: >19s} | {: >4s} | {: >3d} | {: >3d} | {: >3d} | {: >3d} |\n".format(*market))
-    return result
+    return markets
 
 
 if __name__ == "__main__":
-    print get_data()
+    print print_markets(get_markets())

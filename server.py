@@ -1,11 +1,14 @@
 import BaseHTTPServer
 import predictit
+import random
 import time
+import thread
+import smtplib
+import subprocess
 from urlparse import urlparse
 
 HOST_NAME = '0.0.0.0'  # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 8000  # Maybe set this to 9000.
-
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
@@ -38,13 +41,42 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         s.send_response(200)
         s.send_header("Content-type", "text/plain")
         s.end_headers()
-        s.wfile.write(predictit.get_data())
+        s.wfile.write(predictit.print_markets(predictit.get_markets()))
+
+
+def send_mail(to_addrs, subject, message):
+    process = subprocess.Popen(['mail','-s', subject] + to_addrs, stdin=subprocess.PIPE)
+    process.communicate(message)
+    process.stdin.close()
+    print "Email sent"
+
+
+def email_thing():
+    YES_CUTOFF = 4
+    NO_CUTOFF = 0
+    print "Starting notifier...."
+    while True:
+        markets = predictit.get_markets()
+        should_email = False
+        for market in markets:
+            edges = market.edges()
+            if edges[0] > YES_CUTOFF or edges[1] > NO_CUTOFF:
+                if market.id == "1234":
+                    continue
+                print "Arbitrage found."
+                should_email = True
+                break
+        if should_email:
+            send_mail(["jserrino@gmail.com", "fserrino@aol.com"], "Check Predictit", predictit.print_markets(markets))
+        sleep_time = int((random.random()-0.5)*600+600)
+        time.sleep(sleep_time)
 
 if __name__ == '__main__':
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
     try:
+        thread.start_new_thread(email_thing, ())
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass

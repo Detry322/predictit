@@ -68,7 +68,7 @@ def get_markets():
 
     markets = [parse_market(response) for response in responses if response.status_code == 200]
 
-    return markets
+    return [market for market in markets if market is not None]
 
 
 if __name__ == "__main__":

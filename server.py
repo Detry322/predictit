@@ -52,8 +52,8 @@ def send_mail(to_addrs, subject, message):
 
 
 def email_thing():
-    YES_CUTOFF = 4
-    NO_CUTOFF = 0
+    YES_CUTOFF = 5
+    NO_CUTOFF = 7
     print "Starting notifier...."
     while True:
         markets = predictit.get_markets()
@@ -67,7 +67,7 @@ def email_thing():
                 should_email = True
                 break
         if should_email:
-            send_mail(["jserrino@gmail.com", "fserrino@aol.com"], "Check Predictit", predictit.print_markets(markets))
+            send_mail(["jserrino@gmail.com", "spamfilter60022@gmail.com"], "Check Predictit", predictit.print_markets(markets))
         sleep_time = int((random.random()-0.5)*600+600)
         time.sleep(sleep_time)
 
